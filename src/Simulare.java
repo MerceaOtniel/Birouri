@@ -1,14 +1,22 @@
 import sun.misc.Lock;
 
-class Ghiseu{
+import java.util.Random;
 
-    private int clientiTotali=0;
-    private int clientCurent=0;
-    private Lock lock = new Lock();
+class Ghiseu extends Thread{
+
+    //am considerat ca odata ce un client nu o gaseste pe caserita el va ramane la aceeasi coada si va incerca pana o gaseste.
+
+    private int clientiTotali=0; //reprezinta cati clienti au fost pana acuma ca sa se stie exact ce numar de ordine va avea urmatorul client
+    private int clientCurent=0;//reprezinta clientul curent pentru a se sti cine urmeaza la coada
+    private Lock lock = new Lock();//doar un singur client poate la un momentdat sa verifice daca el este urmatorul si sa actioneze
+    private Lock sleepLock=new Lock();// are rolul de a bloca tot sistemul cand caserita pleaca in pauza.
+
 
     public void serveste(Persoana ps){
 
+
         try {
+            sleepLock.lock();
             lock.lock();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -21,7 +29,7 @@ class Ghiseu{
                 // Displaying the thread that is running
                 System.out.println("Thread " +
                         Thread.currentThread().getId() +
-                        " is running" + "    clientii        " + clientiTotali + "   cu numarul de ordine   "+ps.getNumarordine());
+                        " is running" + "    clientii totali       " + clientiTotali + "   cu numarul de ordine   "+ps.getNumarordine());
 
                 ps.setDocumentObtinut();
             } catch (Exception e) {
@@ -42,6 +50,30 @@ class Ghiseu{
             }
         }
         lock.unlock();
+        sleepLock.unlock();
+    }
+
+    // functia asta are rolul de a genera numere random pentru a face sistemul mai dinamic si odata ce se genereaza un anumit numar
+    //caserita intra in pauza pentru 10 milisecunde(nu e relevant cat se asteapta ci sa functioneze).
+    public void run(){
+
+        while(true){
+            Random rand = new Random();
+            int  n = rand.nextInt(100000) + 1;
+            if(n==33){
+                try {
+                    sleepLock.lock();
+                    System.out.println("caserita a intrat in pauza");
+                    Thread.sleep(10);
+                    System.out.println("caserita a iesit din pauza");
+                    sleepLock.unlock();
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
 }
@@ -96,6 +128,7 @@ public class Simulare {
     public static void main(String []argv){
         int n = 40; // Number people
         Ghiseu ghis=new Ghiseu();
+        ghis.start();
         for (int i=0; i<n; i++)
         {
             Persoana client = new Persoana();
