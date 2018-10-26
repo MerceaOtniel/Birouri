@@ -1,6 +1,5 @@
 import sun.misc.Lock;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -11,11 +10,8 @@ class Ghiseu extends Thread{
 
     private int clientiTotali=0; //reprezinta cati clienti au fost pana acuma ca sa se stie exact ce numar de ordine va avea urmatorul client
     private Lock lock = new Lock();//doar un singur client poate la un momentdat sa verifice daca el este urmatorul si sa actioneze
-    private Lock sleepLock=new Lock();// are rolul de a bloca tot sistemul cand caserita pleaca in pauza.
+    private Lock setDocumentLock=new Lock(); //protejeaza scrierea/citirea conditiei de finalizare a unui client
     private volatile Queue<Thread> queue=new LinkedList<>();
-    private volatile  ArrayList ar=new ArrayList();
-
-
 
     public void serveste(Persoana ps){
 
@@ -42,9 +38,9 @@ class Ghiseu extends Thread{
                         Thread.currentThread().getId() +
                         " is running" + "    clientii totali       " + clientiTotali + "   cu numarul de ordine   " + ps.getNumarordine());
 
+                setDocumentLock.lock();
                 ps.setDocumentObtinut();
-                ar.add(ps.getNumarordine());
-                System.out.println("tocmai am adaugat "+ps.getNumarordine());
+                setDocumentLock.unlock();
 
 
             } catch (InterruptedException e) {
@@ -62,16 +58,15 @@ class Ghiseu extends Thread{
             Random rand = new Random();
             int  n = rand.nextInt(100000) + 1;
             if(n%5==0){
-                try {
-                    sleepLock.lock();
+
                     System.out.println("caserita a intrat in pauza");
+                try {
                     Thread.sleep(10);
-                    System.out.println("caserita a iesit din pauza");
-                    sleepLock.unlock();
-                }
-                catch(Exception e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                System.out.println("caserita a iesit din pauza");
+
             }
             else{
                 try {
@@ -83,12 +78,25 @@ class Ghiseu extends Thread{
                 Thread client=queue.poll();
                 if(client!=null){
 
-                    System.out.println("Astept dupa asta " +((Persoana)client).getNumarordine());
-                    while(ar.contains(((Persoana)client).getNumarordine())==false){
+                    while(true){
 
-                        synchronized (client) {
-                            client.notifyAll();
+                        try {
+                            setDocumentLock.lock();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
+                        if(((Persoana)client).esteDocumentulObtinut()==false) {
+
+                            synchronized (client) {
+                                client.notifyAll();
+                                setDocumentLock.unlock();
+                            }
+                        }
+                        else {
+                            setDocumentLock.unlock();
+                            break;
+                        }
+
 
                     }
                 }
