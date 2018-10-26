@@ -1,5 +1,8 @@
 import sun.misc.Lock;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 
 class Ghiseu extends Thread{
@@ -7,50 +10,48 @@ class Ghiseu extends Thread{
     //am considerat ca odata ce un client nu o gaseste pe caserita el va ramane la aceeasi coada si va incerca pana o gaseste.
 
     private int clientiTotali=0; //reprezinta cati clienti au fost pana acuma ca sa se stie exact ce numar de ordine va avea urmatorul client
-    private int clientCurent=0;//reprezinta clientul curent pentru a se sti cine urmeaza la coada
     private Lock lock = new Lock();//doar un singur client poate la un momentdat sa verifice daca el este urmatorul si sa actioneze
     private Lock sleepLock=new Lock();// are rolul de a bloca tot sistemul cand caserita pleaca in pauza.
+    private volatile Queue<Thread> queue=new LinkedList<>();
+    private volatile  ArrayList ar=new ArrayList();
+
 
 
     public void serveste(Persoana ps){
 
-
         try {
-            sleepLock.lock();
             lock.lock();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        if(ps.getNumarordine()==clientCurent) {
-
+        queue.add(ps);
             try {
-
-                // Displaying the thread that is running
-                System.out.println("Thread " +
-                        Thread.currentThread().getId() +
-                        " is running" + "    clientii totali       " + clientiTotali + "   cu numarul de ordine   "+ps.getNumarordine());
-
-                ps.setDocumentObtinut();
-            } catch (Exception e) {
-                // Throwing an exception
-                System.out.println("Exception is caught");
-            }
-            clientCurent++;
-        }
-        else {
-            if (ps.esteInCoada() == false) {
                 clientiTotali++;
                 ps.setNumarordine(clientiTotali);
                 ps.intraInCoada();
                 System.out.println("Thread " +
                         Thread.currentThread().getId() +
-                        " a intrat in coada  clientii  "+ clientiTotali);
+                        " a intrat in coada  clientii  " + clientiTotali);
+                lock.unlock();
 
+                synchronized (ps) {
+                    ps.wait();
+                }
+
+                System.out.println("Thread " +
+                        Thread.currentThread().getId() +
+                        " is running" + "    clientii totali       " + clientiTotali + "   cu numarul de ordine   " + ps.getNumarordine());
+
+                ps.setDocumentObtinut();
+                ar.add(ps.getNumarordine());
+                System.out.println("tocmai am adaugat "+ps.getNumarordine());
+
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }
-        lock.unlock();
-        sleepLock.unlock();
+
+
     }
 
     // functia asta are rolul de a genera numere random pentru a face sistemul mai dinamic si odata ce se genereaza un anumit numar
@@ -60,7 +61,7 @@ class Ghiseu extends Thread{
         while(true){
             Random rand = new Random();
             int  n = rand.nextInt(100000) + 1;
-            if(n==33){
+            if(n%5==0){
                 try {
                     sleepLock.lock();
                     System.out.println("caserita a intrat in pauza");
@@ -72,8 +73,28 @@ class Ghiseu extends Thread{
                     e.printStackTrace();
                 }
             }
-        }
+            else{
+                try {
+                    lock.lock();
 
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Thread client=queue.poll();
+                if(client!=null){
+
+                    System.out.println("Astept dupa asta " +((Persoana)client).getNumarordine());
+                    while(ar.contains(((Persoana)client).getNumarordine())==false){
+
+                        synchronized (client) {
+                            client.notifyAll();
+                        }
+
+                    }
+                }
+                lock.unlock();
+            }
+        }
     }
 
 }
@@ -87,11 +108,10 @@ class Persoana extends Thread{
 
     public void run(){
 
-        while(esteDocumentulObtinut()==false) {
+        gs.serveste(this);
 
-            gs.serveste(this);
-        }
     }
+
     public void setNumarordine(int numarOdrine){
         this.numarOrdine=numarOdrine;
     }
