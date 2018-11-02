@@ -11,7 +11,13 @@ class Ghiseu extends Thread{
     private int clientiTotali=0; //reprezinta cati clienti au fost pana acuma ca sa se stie exact ce numar de ordine va avea urmatorul client
     private Lock lock = new Lock();//doar un singur client poate la un momentdat sa verifice daca el este urmatorul si sa actioneze
     private Lock setDocumentLock=new Lock(); //protejeaza scrierea/citirea conditiei de finalizare a unui client
+    private Lock lockFlagPauza=new Lock();
     private volatile Queue<Thread> queue=new LinkedList<>();
+    public volatile boolean flagPauza=false; //grija sa verificati cu lockuri daca flagul se poate citi;false=nu e in pauza; true=e in pauza
+
+    public Lock getLockPauza(){
+        return lockFlagPauza;
+    }
 
     public void serveste(Persoana ps){
 
@@ -62,6 +68,10 @@ class Ghiseu extends Thread{
                     System.out.println("caserita a intrat in pauza");
                 try {
                     Thread.sleep(10);
+                    lockFlagPauza.lock();
+                    flagPauza=true;
+                    lockFlagPauza.unlock();
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -71,7 +81,9 @@ class Ghiseu extends Thread{
             else{
                 try {
                     lock.lock();
-
+                    lockFlagPauza.lock();
+                    flagPauza=false;
+                    lockFlagPauza.unlock();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -118,6 +130,9 @@ class Persoana extends Thread{
 
         gs.serveste(this);
 
+
+        //cand verificati daca caserita este in pauza apelati gs.getLockPauza() care va intoarce un lock si apoi incercati sa obtineti
+        // locul respectiv iar pe urma cititi flagPauza care spune daca caserita e in pauza sau nu
     }
 
     public void setNumarordine(int numarOdrine){
