@@ -1,6 +1,10 @@
 import sun.misc.Lock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
@@ -131,5 +135,112 @@ public class Simulare {
 //            client.setGhiseu(ghis);
 //            client.start();
 //        }
+    	List<Ghiseu> g1 = new ArrayList<Ghiseu>();
+    	g1.add(new Ghiseu());
+    	g1.add(new Ghiseu());
+    	g1.add(new Ghiseu());
+    	
+    	List<String> l1 = new ArrayList<String>();
+    	l1.add("Buletin");
+    	l1.add("Act proprietate");
+    	
+    	HashMap<String,List<String>> m1 = new HashMap<String,List<String>>();
+    	
+    	Birou b1 = new Birou(g1,l1,m1);
+    	b1.addDependentaAct("Buletin", Arrays.asList());
+    	b1.addDependentaAct("Act proprietate", Arrays.asList());
+    	
+    	List<Ghiseu> g2 = new ArrayList<Ghiseu>();
+    	g2.add(new Ghiseu());
+    	g2.add(new Ghiseu());
+    	
+    	List<String> l2 = new ArrayList<String>();
+    	l2.add("Carte funciara");
+    	l2.add("Certificat calitate");
+    	
+    	HashMap<String,List<String>> m2 = new HashMap<String,List<String>>();
+    	
+    	Birou b2 = new Birou(g2,l2,m2);
+    	List<String> d21 = new ArrayList<String>();
+    	d21.add("Buletin");
+    	d21.add("Act proprietate");
+    	b2.addDependentaAct("Carte funciara", d21);
+    	List<String> d22 = new ArrayList<String>();
+    	d22.add("Act proprietate");
+    	b2.addDependentaAct("Certificat calitate", d22);
+    	
+    	List<Ghiseu> g3 = new ArrayList<Ghiseu>();
+    	g3.add(new Ghiseu());
+    	
+    	List<String> l3 = new ArrayList<String>();
+    	l3.add("Contract vanzare cumparare");
+    	
+    	HashMap<String,List<String>> m3 = new HashMap<String,List<String>>();
+    	
+    	Birou b3 = new Birou(g3,l3,m3);
+    	List<String> d31 = new ArrayList<String>();
+    	d31.add("Buletin");
+    	d31.add("Act proprietate");
+    	d31.add("Certificat calitate");
+    	b3.addDependentaAct("Contract vanzare cumparare", d31);
+    	
+    	List<String> a1 = new ArrayList<String>();
+    	a1.add("Buletin");
+    	a1.add("Certificat calitate");
+    	
+    	List<String> a2 = new ArrayList<String>();
+    	a2.add("Act proprietate");
+    	a2.add("Carte funciara");
+    	
+    	List<String> a3 = new ArrayList<String>();
+    	a3.add("Buletin");
+    	a3.add("Act proprietate");
+    	a3.add("Carte funciara");
+    	a3.add("Certificat calitate");
+    	
+    	List<String> a4 = new ArrayList<String>();
+    	a4.add("Carte funciara");
+    	a4.add("Certificat calitate");
+    	a4.add("Contract vanzare cumparare");
+    	
+    	List<Birou> lb = new ArrayList<Birou>();
+    	lb.add(b1);
+    	lb.add(b2);
+    	lb.add(b3);
+    	
+    	b1.startLucru();
+    	b2.startLucru();
+    	b3.startLucru();
+    	
+    	Persoana client = null;
+    	
+    	for (int i=0;i<40;i++)
+    	{
+    		switch (i%4)
+    		{
+	    		case 0:
+	    		{
+	    			client = new Persoana(a1,lb);
+	    			break;
+	    		}
+	    		case 1:
+	    		{
+	    			client = new Persoana(a2,lb);
+	    			break;
+	    		}
+	    		case 2:
+	    		{
+	    			client = new Persoana(a3,lb);
+	    			break;
+	    		}
+	    		case 3:
+	    		{
+	    			client = new Persoana(a4,lb);
+	    			break;
+	    		}
+	    		default:break;
+    		}
+    		client.start();
+    	}
     }
 }

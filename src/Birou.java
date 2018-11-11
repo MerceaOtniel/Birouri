@@ -1,12 +1,13 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class Birou{
 
-  private List<Ghiseu> ghiseuri = new ArrayList<Ghiseu>();
-  private List<String> acte = new ArrayList<String>();
-  private Map<String, List<String>> dependenteActe = new Map<String, List<String>>();
+  private List<Ghiseu> ghiseuri;
+  private List<String> acte;
+  private HashMap<String, List<String>> dependenteActe;
   private int id;
   private static int ids = 0;
 
@@ -15,7 +16,7 @@ class Birou{
     ids++;
   }
 
-  public Birou(List<Ghiseu> g, List<String> a, Map<String, List<String>> d) {
+  public Birou(List<Ghiseu> g, List<String> a, HashMap<String, List<String>> d) {
     id = ids;
     ghiseuri = g;
     acte = a;
@@ -32,12 +33,12 @@ class Birou{
   }
 
   public void addDependentaAct(String a, List<String> d) {
-    if(this.dependenteActe.contains(a)) {
+    if(this.dependenteActe.containsKey(a)) {
       List<String> tmp = this.dependenteActe.get(a);
       tmp.addAll(d);
-      this.dependenteActe.add(a, tmp);
+      this.dependenteActe.put(a, tmp);
     } else {
-      this.dependenteActe.add(a, d);
+      this.dependenteActe.put(a, d);
     }
   }
 
@@ -65,4 +66,8 @@ class Birou{
     return "Birou " + id;
   }
 
+  public void startLucru() {
+	  for (Ghiseu g:ghiseuri)
+		  g.start();
+  }
 }
