@@ -7,40 +7,42 @@ public class Persoana extends Thread{
 
     private int numarOrdine=0;//numarul de ordine al acestei persoana de la ghiseul curent
     private boolean am_intrat=false; //verifica daca aceasta persoana este deja in coada
-    private boolean documentObtinut=false; //verifica daca aceasta persoana a obtinut documentul de la ghiseul curent
+    public boolean documentObtinut=false; //verifica daca aceasta persoana a obtinut documentul de la ghiseul curent
     private Ghiseu gs; //ghiseul la care asteapta aceasta persoana
     private List<String> requiredDocs;
     private List<String> ownedDocs = new ArrayList<String>();
     private List<Birou> birouList;
+    public int indiceNumar;
 
-    public Persoana(List<String> acte , List<Birou> birouri) {
+    public Persoana(List<String> acte , List<Birou> birouri,int indiceNumar) {
     	requiredDocs=acte;
     	birouList=birouri;
+    	this.indiceNumar=indiceNumar;
     }
     
     public void run(){
 
     	
     	while(true) {
-    		documentObtinut=false;
+
     		String act= requiredDocs.get(0);
     		Birou birou = getBirouForAct(act);
     		if(birou==null)
     			break;
     		if(!canObtainAct(birou, act))
     			continue;
-    		
+
     		gs = getGhiseuFromBirou(birou);
         gs.serveste(this);
+        if(!requiredDocs.isEmpty())
         requiredDocs.remove(0);
         ownedDocs.add(act);
-    	
+
         if(requiredDocs.isEmpty())
         	break;
     	
     	}
-    	
-    	System.out.println("Persoana cu numarul de ordine "+numarOrdine+" a obtinut documentele");
+    	System.out.println("Persoana cu numarul de ordine "+indiceNumar+" a obtinut documentele");
 
 
     }

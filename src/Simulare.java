@@ -35,18 +35,18 @@ class Ghiseu extends Thread{
                 clientiTotali++;
                 ps.setNumarordine(clientiTotali);
                 ps.intraInCoada();
-                System.out.println("Thread " +
-                        Thread.currentThread().getId() +
-                        " a intrat in coada  clientii  " + clientiTotali);
+                System.out.println("Clientul " +
+                        ps.indiceNumar +
+                        " a intrat in coada");
                 lock.unlock();
 
                 synchronized (ps) {
                     ps.wait();
                 }
 
-                System.out.println("Thread " +
-                        Thread.currentThread().getId() +
-                        " is running" + "    clientii totali       " + clientiTotali + "   cu numarul de ordine   " + ps.getNumarordine());
+                System.out.println("Clientul " +
+                        ps.indiceNumar +
+                        " is running");
 
                 setDocumentLock.lock();
                 ps.setDocumentObtinut();
@@ -109,6 +109,7 @@ class Ghiseu extends Thread{
                             }
                         }
                         else {
+							((Persoana)client).documentObtinut=false;
                             setDocumentLock.unlock();
                             break;
                         }
@@ -220,22 +221,22 @@ public class Simulare {
     		{
 	    		case 0:
 	    		{
-	    			client = new Persoana(a1,lb);
+	    			client = new Persoana(a1,lb,i);
 	    			break;
 	    		}
 	    		case 1:
 	    		{
-	    			client = new Persoana(a2,lb);
+	    			client = new Persoana(a2,lb,i);
 	    			break;
 	    		}
 	    		case 2:
 	    		{
-	    			client = new Persoana(a3,lb);
+	    			client = new Persoana(a3,lb,i);
 	    			break;
 	    		}
 	    		case 3:
 	    		{
-	    			client = new Persoana(a4,lb);
+	    			client = new Persoana(a4,lb,i);
 	    			break;
 	    		}
 	    		default:break;
